@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  php-fpm:
+    container_name: trufla_php
+    build: build/php-fpm
+    expose:
+        - '9000'
+    volumes:
+        - ./public_html:/var/www/html
+    networks: 
+        - trufla
+    restart: always
+
+  nginx-web:
+    container_name: trufla_nginx
+    build: build/nginx
+    ports:
+        - '8080:85'
+    volumes:
+        - ./public_html:/var/www/html
+        - ./build/nginx/sites-enabled:/etc/nginx/sites-enabled
+    networks: 
+        - trufla
+    restart: always
+  
+  myadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: trufla_phpmyadmin
+    ports:
+        - "8085:80"
+    environment:
+        - PMA_ARBITRARY=1
+    restart: always
+    depends_on:
+        - mysqldb
+    networks: 
+        - trufla
+
+  mysqldb:
+    image: mysql:5.7
+    container_name: trufla_mysql
+    restart: always
+    environment:
+        - MYSQL_DATABASE=trufla
+        - MYSQL_ROOT_PASSWORD=1234567
+        - MYSQL_USER=root
+        - MYSQL_PASSWORD=1234567
+    ports:
+        - "3306:3306"
+    volumes:
+        - ./data/db/mysql:/var/lib/mysql
+    networks: 
+        - trufla
+
+networks:
+  trufla:
+     driver: bridge
